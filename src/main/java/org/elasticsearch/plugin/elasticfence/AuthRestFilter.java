@@ -20,6 +20,7 @@ import org.elasticsearch.rest.RestFilterChain;
 import org.elasticsearch.rest.RestRequest;
 import org.elasticsearch.rest.RestStatus;
 
+//TODO RestFilter no longer exists
 public class AuthRestFilter extends RestFilter {
 	Client client;
 	Settings settings;

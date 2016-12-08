@@ -1,5 +1,6 @@
 package org.elasticsearch.plugin.elasticfence;
 
+import org.elasticsearch.client.node.NodeClient;
 import org.elasticsearch.rest.*;
 
 import org.elasticsearch.client.Client;
@@ -7,6 +8,8 @@ import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.plugin.elasticfence.data.UserDataBridge;
 import org.elasticsearch.plugin.elasticfence.logger.EFLogger;
+
+import java.io.IOException;
 
 import static org.elasticsearch.rest.RestRequest.Method.GET;
 import static org.elasticsearch.rest.RestStatus.OK;
@@ -20,6 +23,11 @@ public class AuthRestHandler extends BaseRestHandler {
         restController.registerHandler(GET, "/_httpuserauth", this);
         RestFilter filter = new AuthRestFilter(client, settings);
         restController.registerFilter(filter);
+    }
+
+    @Override
+    protected BaseRestHandler.RestChannelConsumer prepareRequest(RestRequest var1, NodeClient var2) throws IOException {
+
     }
 
 	@Override
