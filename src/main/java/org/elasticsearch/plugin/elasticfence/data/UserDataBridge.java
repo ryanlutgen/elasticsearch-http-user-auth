@@ -16,6 +16,7 @@ import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.client.Client;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -88,9 +89,6 @@ public class UserDataBridge {
 	
 	/**
 	 * add permission to an user with specified indices
-	 * @param user
-	 * @param password
-	 * @param path
 	 * @return
 	 */
 	public boolean addAuthIndex (String userName, String indexName) {
@@ -128,9 +126,6 @@ public class UserDataBridge {
 	
 	/**
 	 * update permission of an user with specified indices
-	 * @param user
-	 * @param password
-	 * @param path
 	 * @return
 	 */
 	public boolean updateAuthIndex (String userName, String indexName) {
@@ -168,9 +163,6 @@ public class UserDataBridge {
 	
 	/**
 	 * add permission to an user with a specified index
-	 * @param user
-	 * @param password
-	 * @param path
 	 * @return
 	 */
 	public boolean removeAuth (String userName, String password, String indexName) {
@@ -231,7 +223,7 @@ public class UserDataBridge {
 			                        .field("created", created)
 			                    .endObject()
 			                  )
-			        .setRefresh(true)
+                    .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
 			        .execute()
 			        .get();
 			reloadUserDataCache();
@@ -267,13 +259,14 @@ public class UserDataBridge {
 		DeleteResponse response = null;
 		try {
 			response = client.prepareDelete(HTTP_USER_AUTH_INDEX, HTTP_USER_AUTH_TYPE, userName)
-					.setRefresh(true)
+                    .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
 			        .execute()
 			        .get();
 		} catch (InterruptedException | ExecutionException e) {
 			EFLogger.error("InterruptedException | ExecutionException", e);
 		}
-		if (response != null && response.isFound()) {
+
+		if (response != null && response.status().getStatus() == 200) {
 			reloadUserDataCache();
 			return true;
 		}
