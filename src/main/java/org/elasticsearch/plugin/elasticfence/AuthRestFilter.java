@@ -22,11 +22,9 @@ import org.elasticsearch.rest.RestRequest;
 import org.elasticsearch.rest.RestStatus;
 
 public class AuthRestFilter extends RestFilter {
-	Client client;
 	Settings settings;
-	public AuthRestFilter(Client client, Settings settings) {
+	public AuthRestFilter(Settings settings) {
 		this.settings = settings;
-		this.client   = client;
 	}
 	@Override
 	public void process(RestRequest request, RestChannel channel, NodeClient client, RestFilterChain filterChain) throws Exception {
