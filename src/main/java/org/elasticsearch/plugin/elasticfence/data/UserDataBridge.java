@@ -17,9 +17,9 @@ import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.action.support.WriteRequest;
-import org.elasticsearch.client.Client;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.elasticsearch.client.node.NodeClient;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.plugin.elasticfence.UserAuthenticator;
 import org.elasticsearch.plugin.elasticfence.logger.EFLogger;
@@ -34,9 +34,9 @@ public class UserDataBridge {
 	private static final String HTTP_USER_AUTH_INDEX = ".http_user_auth";
 	private static final String HTTP_USER_AUTH_TYPE = "user";
 	private static boolean isInitialized = false;
-	private Client client;
+	private NodeClient client;
 	
-	public UserDataBridge(Client client) {
+	public UserDataBridge(NodeClient client) {
 		this.client = client;
 		if (!isInitialized && !createIndexIfEmpty()) {
 			EFLogger.error("failed to create index: " + HTTP_USER_AUTH_INDEX);
