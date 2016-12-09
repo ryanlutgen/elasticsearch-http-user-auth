@@ -22,7 +22,7 @@ public class AuthRestHandler extends BaseRestHandler {
     public AuthRestHandler(Settings settings, RestController restController, NodeClient client) {
     	super(settings/*, restController, client*/);
         restController.registerHandler(GET, "/_httpuserauth", this);
-        RestFilter filter = new AuthRestFilter(client, settings);
+        RestFilter filter = new AuthRestFilter(settings);
         restController.registerFilter(filter);
     }
 
