@@ -69,6 +69,11 @@ public class ElasticfencePlugin extends Plugin implements ActionPlugin {
     */
 
     @Override
+    public Settings additionalSettings() {
+        return Settings.EMPTY;
+    }
+
+    @Override
     public List<Class<? extends RestHandler>> getRestHandlers() {
         String isPluginDisabled = getSettingString("disabled");
 
