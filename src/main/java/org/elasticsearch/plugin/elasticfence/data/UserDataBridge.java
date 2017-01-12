@@ -2,10 +2,7 @@ package org.elasticsearch.plugin.elasticfence.data;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 import org.elasticsearch.ElasticsearchException;
@@ -96,7 +93,7 @@ public class UserDataBridge {
 	 * @param indexName
 	 * @return
 	 */
-	public boolean addAuthIndex (String userName, String indexName) {
+	public boolean addAuthIndex (String userName, String indexName, boolean readRight, boolean writeRight, boolean addRight, boolean deleteRight) {
 		if (userName == null || userName.equals("") || indexName == null || indexName.equals("")) {
 			return false;
 		}
@@ -110,10 +107,13 @@ public class UserDataBridge {
 		if (user == null) {
 			return false;
 		}
-		Set<String> indexFilters = user.getIndexFilters();
+
+        HashMap<String, HashMap<String, Boolean>> indexFilters = user.getIndexFilters2();
 		String[] indexNames = indexName.split(",");
+
 		for (String index : indexNames) {
 			index = index.trim();
+
 			if (index == null || index.equals("")) {
 				continue;
 			}
@@ -123,9 +123,17 @@ public class UserDataBridge {
 			if (index.equals("/*")) {
 				continue;
 			}
-			indexFilters.add(index);
+            indexFilters.put(index, new HashMap<String, Boolean>()
+                {{
+                    put("read", readRight);
+                    put("write", writeRight);
+                    put("add", addRight);
+                    put("delete", deleteRight);
+                }}
+            );
 		}
-		user.setFilters(indexFilters);
+
+		user.setFilters2(indexFilters);
 		return putUser(user);
 	}
 	
@@ -135,7 +143,7 @@ public class UserDataBridge {
 	 * @param indexName
 	 * @return
 	 */
-	public boolean updateAuthIndex (String userName, String indexName) {
+	public boolean updateAuthIndex (String userName, String indexName, boolean readRight, boolean writeRight, boolean addRight, boolean deleteRight) {
 		if (userName == null || userName.equals("") || indexName == null || indexName.equals("")) {
 			return false;
 		}
@@ -149,10 +157,12 @@ public class UserDataBridge {
 		if (user == null) {
 			return false;
 		}
-		Set<String> indexFilters = Sets.newCopyOnWriteArraySet();
+
+        HashMap<String, HashMap<String, Boolean>> indexFilters = new HashMap<String, HashMap<String, Boolean>>();
 		String[] indexNames = indexName.split(",");
 		for (String index : indexNames) {
 			index = index.trim();
+
 			if (index == null || index.equals("")) {
 				continue;
 			}
@@ -162,9 +172,17 @@ public class UserDataBridge {
 			if (index.equals("/*")) {
 				continue;
 			}
-			indexFilters.add(index);
+
+            indexFilters.put(index, new HashMap<String, Boolean>()
+                    {{
+                        put("read", readRight);
+                        put("write", writeRight);
+                        put("add", addRight);
+                        put("delete", deleteRight);
+                    }}
+            );
 		}
-		user.setFilters(indexFilters);
+		user.setFilters2(indexFilters);
 		return putUser(user);
 	}
 	
@@ -176,29 +194,29 @@ public class UserDataBridge {
 	 * @return
 	 */
 	public boolean removeAuth (String userName, String password, String indexName) {
-		if (userName == null || userName.equals("") || indexName == null || indexName.equals("")) {
-			return false;
-		}
-		userName = userName.toLowerCase();
-		indexName = indexName.toLowerCase();
-		if (userName.equals("root")) {
-			return false;
-		}
-		
-		UserData user = getUser(userName);
-		if (user == null) 
-			return false;
-		if (user.isValidPassword(password)) {
-			Set<String> indices = user.getIndexFilters();
-			if (indexName.charAt(0) != '/') {
-				indexName = "/" + indexName;
-			}
-			if (indices.contains(indexName)) {
-				indices.remove(indexName);
-				putUser(user);
-				return true;
-			}
-		}
+//		if (userName == null || userName.equals("") || indexName == null || indexName.equals("")) {
+//			return false;
+//		}
+//		userName = userName.toLowerCase();
+//		indexName = indexName.toLowerCase();
+//		if (userName.equals("root")) {
+//			return false;
+//		}
+//
+//		UserData user = getUser(userName);
+//		if (user == null)
+//			return false;
+//		if (user.isValidPassword(password)) {
+//			Set<String> indices = user.getIndexFilters();
+//			if (indexName.charAt(0) != '/') {
+//				indexName = "/" + indexName;
+//			}
+//			if (indices.contains(indexName)) {
+//				indices.remove(indexName);
+//				putUser(user);
+//				return true;
+//			}
+//		}
 		return false;
 	}
 	
@@ -229,7 +247,8 @@ public class UserDataBridge {
 			                    .startObject()
 			                        .field("username", user.getUsername())
 			                        .field("password", user.getPassword())
-			                        .field("indices", user.getIndexFilters())
+                                    .field("indices", user.getIndexFilters())
+                                    .field("indices2", user.getIndexFilters2())
 			                        .field("created", created)
 			                    .endObject()
 			                  )
@@ -361,6 +380,17 @@ public class UserDataBridge {
 		} else {
 			indices = Sets.newConcurrentHashSet();
 		}
-		return UserData.restoreFromESData(userName, password, created, indices);
+
+
+        HashMap<String, HashMap<String, Boolean>> indices2;
+        if (source.containsKey("indices2")) {
+            @SuppressWarnings("unchecked")
+            HashMap<String, HashMap<String, Boolean>> indicesList = (HashMap<String, HashMap<String, Boolean>>)source.get("indices2");
+            indices2 = indicesList;
+        } else {
+            indices2 = new HashMap<String, HashMap<String, Boolean>>();
+        }
+
+		return UserData.restoreFromESData(userName, password, created, indices, indices2);
 	}
 }
