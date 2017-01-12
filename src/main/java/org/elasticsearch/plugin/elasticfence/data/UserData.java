@@ -87,6 +87,28 @@ public class UserData {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZ");
 		user.created = sdf.format(new Date());
 		user.indexFilters  = Sets.newConcurrentHashSet(Arrays.asList(indexFilters));
+
+        HashMap<String, Boolean> defaultPerms = new HashMap<>();
+
+        if ("root".equals(username)) {
+            defaultPerms.put("read", true);
+            defaultPerms.put("write", true);
+            defaultPerms.put("add", true);
+            defaultPerms.put("delete", true);
+        }
+        else {
+            defaultPerms.put("read", false);
+            defaultPerms.put("write", false);
+            defaultPerms.put("add", false);
+            defaultPerms.put("delete", false);
+        }
+
+        HashMap<String, HashMap<String, Boolean>> indexFilters2 = new HashMap<>();
+        for (String indexFilter : indexFilters) {
+            indexFilters2.put(indexFilter, defaultPerms);
+        }
+        user.indexFilters2 = indexFilters2;
+
 		return user;
 	}
 	
