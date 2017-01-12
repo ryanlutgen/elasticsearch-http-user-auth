@@ -1,6 +1,7 @@
 package org.elasticsearch.plugin.elasticfence;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -11,6 +12,7 @@ import com.google.common.collect.Maps;
 import org.elasticsearch.plugin.elasticfence.data.UserData;
 import org.elasticsearch.plugin.elasticfence.logger.EFLogger;
 import org.elasticsearch.plugin.elasticfence.parser.RequestParser;
+import org.elasticsearch.rest.RestRequest;
 
 /**
  * A class for checking an index path is accessible by a user. 
@@ -35,16 +37,17 @@ public class UserAuthenticator {
 		return user != null;
 	}
 
-	public boolean isAccessibleIndices(RequestParser parser) {
-		if (user == null) {
+    public boolean isAccessibleIndices(RequestParser parser, RestRequest.Method method) {
+        if (user == null) {
 			return false;
 		}
 
 		if ("root".equals(user.getUsername())) {
 			return true;
 		}
-		
-		Set<String> filters = user.getIndexFilters();
+
+        Set<String> filters = user.getIndexFilters();
+        HashMap<String, HashMap<String, Boolean>> filters2 = user.getIndexFilters2();
 		String apiName = parser.getApiName();
 		List<String> indices = parser.getIndicesInPath();
 		if (indices.contains("/*")) {
@@ -53,20 +56,19 @@ public class UserAuthenticator {
 		}
 		
 		// check kibana accessibility
-		if (isAccessibleUserFilter(filters, parser.getPath()) ) {
+		if (isAccessibleUserFilter2(filters2, parser.getPath(), method) ) {
 			return true;
 		}
 		// check kibana accessibility
-		if (isKibanaRequest(parser.getPath()) && isAccessibleUserToKibana(filters)) {
+		if (isKibanaRequest(parser.getPath()) && isAccessibleUserToKibana2(filters2)) {
 			return true;
 		}
-		
 
 		switch (apiName) {
 			case "_msearch":
 				try {
 					indices = parser.getIndicesFromMsearchRequestBody();
-					return checkIndicesWithFilters(indices, filters);
+					return checkIndicesWithFilters2(indices, filters2, method);
 				} catch (Exception e) {
 					EFLogger.error("block _msearch", e);
 				}
@@ -74,7 +76,7 @@ public class UserAuthenticator {
 			case "_mget":
 				try {
 					indices = parser.getIndicesFromMgetRequestBody();
-					return checkIndicesWithFilters(indices, filters);
+					return checkIndicesWithFilters2(indices, filters2, method);
 				} catch (Exception e) {
 					EFLogger.error("block _mget", e);
 				}
@@ -82,7 +84,7 @@ public class UserAuthenticator {
 			case "_bulk":
 				try {
 					indices = parser.getIndicesFromBulkRequestBody();
-					return checkIndicesWithFilters(indices, filters);
+					return checkIndicesWithFilters2(indices, filters2, method);
 				} catch (Exception e) {
 					EFLogger.error("block _bulk", e);
 				}
@@ -100,7 +102,7 @@ public class UserAuthenticator {
 //		if (filters.containsAll(indices)) {
 //			return true;
 //		}
-		return checkIndicesWithFilters(indices, filters);
+		return checkIndicesWithFilters2(indices, filters2, method);
 	}
 	
 	private boolean checkIndicesWithFilters(List<String> indices, Set<String> filters) {
@@ -119,6 +121,27 @@ public class UserAuthenticator {
 		
 		return true;
 	}
+
+
+    private boolean checkIndicesWithFilters2(List<String> indices, HashMap<String, HashMap<String, Boolean>> filters, RestRequest.Method method) {
+        for (String index : indices) {
+            boolean passed = false;
+            for (String filter : filters.keySet()) {
+                if (ifFilterCoversIndex(index, filter)) {
+                    HashMap<String, Boolean> indexPerms = filters.get(filter);
+                    if (checkRights(method, indexPerms)) {
+                        passed = true;
+                    }
+                    break;
+                }
+            }
+            if (!passed) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 	
 	/**
 	 * check request path if it is used by kibana
@@ -139,13 +162,21 @@ public class UserAuthenticator {
 	 * @param filters
 	 * @return
 	 */
-	private boolean isAccessibleUserToKibana(Set<String> filters) {
-		if (filters.contains("/.kibana")) {
-			return true;
-		}
-		
-		return false;
-	}
+    private boolean isAccessibleUserToKibana(Set<String> filters) {
+        if (filters.contains("/.kibana")) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean isAccessibleUserToKibana2(HashMap<String, HashMap<String, Boolean>> filters) {
+        if (filters.keySet().contains("/.kibana")) {
+            return filters.get("/.kibana").get("read");
+        }
+
+        return false;
+    }
 	
 	/**
 	 * check if an user has filter matching regex rules
@@ -153,23 +184,54 @@ public class UserAuthenticator {
 	 * @param requestPath
 	 * @return
 	 */
-	private boolean isAccessibleUserFilter(Set<String> filters, String requestPath) {
-		String index = normalizeUrlPath(requestPath);
-		String[] array = filters.toArray(new String[0]);
-		for( String filter : array ) {
-			// EFLogger.info("Checking url: " + index + " with regex " + filter);
-			if (index.matches(filter)) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	/**
+    private boolean isAccessibleUserFilter(Set<String> filters, String requestPath) {
+        String index = normalizeUrlPath(requestPath);
+        String[] array = filters.toArray(new String[0]);
+        for( String filter : array ) {
+            // EFLogger.info("Checking url: " + index + " with regex " + filter);
+            if (index.matches(filter)) {
+
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isAccessibleUserFilter2(HashMap<String, HashMap<String, Boolean>> filters, String requestPath, RestRequest.Method method) {
+        String index = normalizeUrlPath(requestPath);
+        for( String filter : filters.keySet()) {
+            // EFLogger.info("Checking url: " + index + " with regex " + filter);
+            if (index.matches(filter)) {
+                HashMap<String, Boolean> indexPerms = filters.get(filter);
+                if (checkRights(method, indexPerms)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean checkRights(RestRequest.Method method, HashMap<String, Boolean> indexPerms) {
+        if (method.equals(RestRequest.Method.GET) && indexPerms.get("read")) {
+            return true;
+        }
+        if (method.equals(RestRequest.Method.POST) && indexPerms.get("add")) {
+            return true;
+        }
+        if (method.equals(RestRequest.Method.PUT) && indexPerms.get("add")) {
+            return true;
+        }
+        if (method.equals(RestRequest.Method.DELETE) && indexPerms.get("delete")) {
+            return true;
+        }
+
+        return false;
+    }
+
+
+    /**
 	 * authenticate a combination of user, password and path
 	 * @param path
-	 * @param user
-	 * @param password
 	 * @return
 	 */
 	public boolean execAuth(String path) {
@@ -198,7 +260,6 @@ public class UserAuthenticator {
 	
 	/**
 	 * load authentication info when ES instance starts
-	 * @param userPassIndices List < Map <key, val>> 
 	 */
 	public static void loadRootUserDataCacheOnStart() {
 		EFLogger.debug("loadRootUserDataCacheOnStart");
@@ -207,7 +268,6 @@ public class UserAuthenticator {
 	
 	/**
 	 * reload authentication info
-	 * @param userPassIndices List < Map <key, val>> 
 	 */
 	public static void reloadUserDataCache(List<UserData> userDataList) {
 		Map<String, UserData> users  = Maps.newConcurrentMap();
