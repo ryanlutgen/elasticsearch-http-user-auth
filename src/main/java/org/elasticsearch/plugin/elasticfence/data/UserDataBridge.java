@@ -16,7 +16,6 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.plugin.elasticfence.UserAuthenticator;
@@ -108,7 +107,7 @@ public class UserDataBridge {
 			return false;
 		}
 
-        HashMap<String, HashMap<String, Boolean>> indexFilters = user.getIndexFilters2();
+        HashMap<String, HashMap<String, Boolean>> indexFilters = user.getIndexFilters();
 		String[] indexNames = indexName.split(",");
 
 		for (String index : indexNames) {
@@ -133,7 +132,7 @@ public class UserDataBridge {
             );
 		}
 
-		user.setFilters2(indexFilters);
+		user.setFilters(indexFilters);
 		return putUser(user);
 	}
 	
@@ -182,7 +181,7 @@ public class UserDataBridge {
                     }}
             );
 		}
-		user.setFilters2(indexFilters);
+		user.setFilters(indexFilters);
 		return putUser(user);
 	}
 	
@@ -247,7 +246,7 @@ public class UserDataBridge {
 			                    .startObject()
 			                        .field("username", user.getUsername())
 			                        .field("password", user.getPassword())
-                                    .field("indices2", user.getIndexFilters2())
+                                    .field("indices", user.getIndexFilters())
 			                        .field("created", created)
 			                    .endObject()
 			                  )
@@ -372,15 +371,15 @@ public class UserDataBridge {
 		String password = (String)source.get("password");
 		String created  = (String)source.get("created");
 
-        HashMap<String, HashMap<String, Boolean>> indices2;
-        if (source.containsKey("indices2")) {
+        HashMap<String, HashMap<String, Boolean>> indices;
+        if (source.containsKey("indices")) {
             @SuppressWarnings("unchecked")
-            HashMap<String, HashMap<String, Boolean>> indicesList = (HashMap<String, HashMap<String, Boolean>>)source.get("indices2");
-            indices2 = indicesList;
+            HashMap<String, HashMap<String, Boolean>> indicesList = (HashMap<String, HashMap<String, Boolean>>)source.get("indices");
+            indices = indicesList;
         } else {
-            indices2 = new HashMap<String, HashMap<String, Boolean>>();
+            indices = new HashMap<String, HashMap<String, Boolean>>();
         }
 
-		return UserData.restoreFromESData(userName, password, created, indices2);
+		return UserData.restoreFromESData(userName, password, created, indices);
 	}
 }
