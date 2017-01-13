@@ -92,13 +92,13 @@ public class AuthRestHandler extends BaseRestHandler {
 			try {
 				boolean res = userDataBridge.updateAuthIndex(userName, indexName, readRight, writeRight, addRight, deleteRight);
 				if (res) {
-					return channel -> channel.sendResponse(new BytesRestResponse(OK, "added auth index: " + userName));
+					return channel -> channel.sendResponse(new BytesRestResponse(OK, "updated auth index: " + userName));
 				} else {
-					return channel -> channel.sendResponse(new BytesRestResponse(OK, "failed to add auth index: " + userName));
+					return channel -> channel.sendResponse(new BytesRestResponse(OK, "failed to update auth index: " + userName));
 				}
 			} catch (Exception ex) {
 				EFLogger.error("failed to add auth index: ", ex);
-				return channel -> channel.sendResponse(new BytesRestResponse(OK, "failed to add auth index : " + userName));
+				return channel -> channel.sendResponse(new BytesRestResponse(OK, "failed to update auth index : " + userName));
 			}
 		}
 
