@@ -12,7 +12,6 @@ import com.google.common.collect.Sets;
 public class UserData {
 	private String username;
 	private String encPassword;
-    private Set<String> indexFilters;
     private HashMap<String, HashMap<String, Boolean>> indexFilters2;
 	private String created;
 	private UserData() {
@@ -24,23 +23,9 @@ public class UserData {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZ");
 		setCreated(sdf.format(new Date()));
 
-		Set<String> indices = Sets.newConcurrentHashSet();
-		setFilters(indices);
-
         HashMap<String, HashMap<String, Boolean>> indices2 = new HashMap<String, HashMap<String, Boolean>>();
         setFilters2(indices2);
 
-	}
-
-	public UserData(String userName, String rawPassword, Set<String> filters) {
-		setUsername(userName);
-		setPassword(rawPassword);
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZ");
-		setCreated(sdf.format(new Date()));
-		if (filters == null) {
-			filters = Sets.newConcurrentHashSet();
-		}
-		setFilters(filters);
 	}
 
     public UserData(String userName, String rawPassword, HashMap<String, HashMap<String, Boolean>> filters) {
@@ -54,39 +39,21 @@ public class UserData {
         setFilters2(filters);
     }
 
-    //todo
-	public UserData(String userName, String rawPassword, String... filters) {
-		setUsername(userName);
-		setPassword(rawPassword);
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZ");
-		setCreated(sdf.format(new Date()));
-		if (filters == null) {
-			Set<String> filterSet = Sets.newConcurrentHashSet(Arrays.asList(filters));
-			setFilters(filterSet);
-		} else {
-			Set<String> filterSet = Sets.newConcurrentHashSet();
-			setFilters(filterSet);
-		}
-	}
-
-	public static UserData restoreFromESData(String username, String encPassword, String created, Set<String> indexFilters, HashMap<String, HashMap<String, Boolean>> indexFilters2) {
+	public static UserData restoreFromESData(String username, String encPassword, String created, HashMap<String, HashMap<String, Boolean>> indexFilters2) {
 		UserData user = new UserData();
 		user.username = username;
 		user.encPassword = encPassword;
 		user.created = created;
-		user.indexFilters = indexFilters;
         user.indexFilters2 = indexFilters2;
 		return user;
 	}
 
-    //todo
 	public static UserData restoreFromESData(String username, String encPassword, String... indexFilters) {
 		UserData user = new UserData();
 		user.username = username;
 		user.encPassword = encPassword;
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZ");
 		user.created = sdf.format(new Date());
-		user.indexFilters  = Sets.newConcurrentHashSet(Arrays.asList(indexFilters));
 
         HashMap<String, Boolean> defaultPerms = new HashMap<>();
 
@@ -115,18 +82,10 @@ public class UserData {
 	public static String encPassword(String rawPassword) {
 		return DigestUtils.sha256Hex(rawPassword);
 	}
-	
-	public Set<String> getIndexFilters() {
-		return indexFilters;
-	}
 
     public HashMap<String, HashMap<String, Boolean>> getIndexFilters2() {
         return indexFilters2;
     }
-
-	public void setFilters(Set<String> indexFilters) {
-		this.indexFilters = indexFilters;
-	}
 
     public void setFilters2(HashMap<String, HashMap<String, Boolean>> indexFilters) {
         this.indexFilters2 = indexFilters;
@@ -170,7 +129,6 @@ public class UserData {
 			.startObject()
 			    .field("username", username)
 			    .field("password", encPassword)
-			    .field("indices", indexFilters)
                 .field("indices2", indexFilters2)
 			    .field("created", created)
 			.endObject().string();
