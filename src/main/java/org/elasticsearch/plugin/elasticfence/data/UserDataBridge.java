@@ -247,7 +247,6 @@ public class UserDataBridge {
 			                    .startObject()
 			                        .field("username", user.getUsername())
 			                        .field("password", user.getPassword())
-                                    .field("indices", user.getIndexFilters())
                                     .field("indices2", user.getIndexFilters2())
 			                        .field("created", created)
 			                    .endObject()
@@ -372,15 +371,6 @@ public class UserDataBridge {
 		String userName = (String)source.get("username");
 		String password = (String)source.get("password");
 		String created  = (String)source.get("created");
-		Set<String> indices;
-		if (source.containsKey("indices")) {
-			@SuppressWarnings("unchecked")
-			List<String> indicesList = (List<String>)source.get("indices");
-			indices = Sets.newConcurrentHashSet(indicesList);
-		} else {
-			indices = Sets.newConcurrentHashSet();
-		}
-
 
         HashMap<String, HashMap<String, Boolean>> indices2;
         if (source.containsKey("indices2")) {
@@ -391,6 +381,6 @@ public class UserDataBridge {
             indices2 = new HashMap<String, HashMap<String, Boolean>>();
         }
 
-		return UserData.restoreFromESData(userName, password, created, indices, indices2);
+		return UserData.restoreFromESData(userName, password, created, indices2);
 	}
 }
