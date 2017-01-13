@@ -46,7 +46,6 @@ public class UserAuthenticator {
 			return true;
 		}
 
-        Set<String> filters = user.getIndexFilters();
         HashMap<String, HashMap<String, Boolean>> filters2 = user.getIndexFilters2();
 		String apiName = parser.getApiName();
 		List<String> indices = parser.getIndicesInPath();
@@ -249,7 +248,7 @@ public class UserAuthenticator {
 		}
 		
 		String index = normalizeUrlPath(path);
-		for (String filter : user.getIndexFilters()) {
+		for (String filter : user.getIndexFilters2().keySet()) {
 			if (ifFilterCoversIndex(index, filter)) {
 				return true;
 			}
