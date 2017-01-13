@@ -4,7 +4,6 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,7 +45,7 @@ public class UserAuthenticator {
 			return true;
 		}
 
-        HashMap<String, HashMap<String, Boolean>> filters2 = user.getIndexFilters();
+        HashMap<String, HashMap<String, Boolean>> filters = user.getIndexFilters();
 		String apiName = parser.getApiName();
 		List<String> indices = parser.getIndicesInPath();
 		if (indices.contains("/*")) {
@@ -55,11 +54,11 @@ public class UserAuthenticator {
 		}
 		
 		// check kibana accessibility
-		if (isAccessibleUserFilter2(filters2, parser.getPath(), method) ) {
+		if (isAccessibleUserFilter(filters, parser.getPath(), method) ) {
 			return true;
 		}
 		// check kibana accessibility
-		if (isKibanaRequest(parser.getPath()) && isAccessibleUserToKibana2(filters2)) {
+		if (isKibanaRequest(parser.getPath()) && isAccessibleUserToKibana(filters)) {
 			return true;
 		}
 
@@ -67,7 +66,7 @@ public class UserAuthenticator {
 			case "_msearch":
 				try {
 					indices = parser.getIndicesFromMsearchRequestBody();
-					return checkIndicesWithFilters2(indices, filters2, method);
+					return checkIndicesWithFilters(indices, filters, method);
 				} catch (Exception e) {
 					EFLogger.error("block _msearch", e);
 				}
@@ -75,7 +74,7 @@ public class UserAuthenticator {
 			case "_mget":
 				try {
 					indices = parser.getIndicesFromMgetRequestBody();
-					return checkIndicesWithFilters2(indices, filters2, method);
+					return checkIndicesWithFilters(indices, filters, method);
 				} catch (Exception e) {
 					EFLogger.error("block _mget", e);
 				}
@@ -83,7 +82,7 @@ public class UserAuthenticator {
 			case "_bulk":
 				try {
 					indices = parser.getIndicesFromBulkRequestBody();
-					return checkIndicesWithFilters2(indices, filters2, method);
+					return checkIndicesWithFilters(indices, filters, method);
 				} catch (Exception e) {
 					EFLogger.error("block _bulk", e);
 				}
@@ -101,28 +100,10 @@ public class UserAuthenticator {
 //		if (filters.containsAll(indices)) {
 //			return true;
 //		}
-		return checkIndicesWithFilters2(indices, filters2, method);
-	}
-	
-	private boolean checkIndicesWithFilters(List<String> indices, Set<String> filters) {
-		for (String index : indices) {
-			boolean passed = false;
-			for (String filter : filters) {
-				if (ifFilterCoversIndex(index, filter)) {
-					passed = true;
-					break;
-				}
-			}
-			if (!passed) {
-				return false;
-			}
-		}
-		
-		return true;
+		return checkIndicesWithFilters(indices, filters, method);
 	}
 
-
-    private boolean checkIndicesWithFilters2(List<String> indices, HashMap<String, HashMap<String, Boolean>> filters, RestRequest.Method method) {
+    private boolean checkIndicesWithFilters(List<String> indices, HashMap<String, HashMap<String, Boolean>> filters, RestRequest.Method method) {
         for (String index : indices) {
             boolean passed = false;
             for (String filter : filters.keySet()) {
@@ -161,15 +142,7 @@ public class UserAuthenticator {
 	 * @param filters
 	 * @return
 	 */
-    private boolean isAccessibleUserToKibana(Set<String> filters) {
-        if (filters.contains("/.kibana")) {
-            return true;
-        }
-
-        return false;
-    }
-
-    private boolean isAccessibleUserToKibana2(HashMap<String, HashMap<String, Boolean>> filters) {
+    private boolean isAccessibleUserToKibana(HashMap<String, HashMap<String, Boolean>> filters) {
         if (filters.keySet().contains("/.kibana")) {
             return filters.get("/.kibana").get("read");
         }
@@ -183,20 +156,7 @@ public class UserAuthenticator {
 	 * @param requestPath
 	 * @return
 	 */
-    private boolean isAccessibleUserFilter(Set<String> filters, String requestPath) {
-        String index = normalizeUrlPath(requestPath);
-        String[] array = filters.toArray(new String[0]);
-        for( String filter : array ) {
-            // EFLogger.info("Checking url: " + index + " with regex " + filter);
-            if (index.matches(filter)) {
-
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean isAccessibleUserFilter2(HashMap<String, HashMap<String, Boolean>> filters, String requestPath, RestRequest.Method method) {
+    private boolean isAccessibleUserFilter(HashMap<String, HashMap<String, Boolean>> filters, String requestPath, RestRequest.Method method) {
         String index = normalizeUrlPath(requestPath);
         for( String filter : filters.keySet()) {
             // EFLogger.info("Checking url: " + index + " with regex " + filter);
