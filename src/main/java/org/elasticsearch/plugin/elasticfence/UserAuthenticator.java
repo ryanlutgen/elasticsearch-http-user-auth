@@ -174,13 +174,10 @@ public class UserAuthenticator {
         if (method.equals(RestRequest.Method.GET) && indexPerms.get("read")) {
             return true;
         }
-        if (method.equals(RestRequest.Method.POST) && indexPerms.get("add")) {
-            return true;
-        }
-        if (method.equals(RestRequest.Method.PUT) && indexPerms.get("add")) {
-            return true;
-        }
         if (method.equals(RestRequest.Method.DELETE) && indexPerms.get("delete")) {
+            return true;
+        }
+        if ((method.equals(RestRequest.Method.POST) || method.equals(RestRequest.Method.PUT)) && indexPerms.get("write")) {
             return true;
         }
 
