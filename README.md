@@ -127,12 +127,12 @@ http://your.elasticsearch.hostname:9200/_httpuserauth?mode=adduser&username=admi
 
 ##### Add Index Permissions:
 <pre>
-http://your.elasticsearch.hostname:9200/_httpuserauth?mode=addindex&username=admin&index=index*
+http://your.elasticsearch.hostname:9200/_httpuserauth?mode=addindex&username=admin&index=index*&read=true&write=true&delete=true
 </pre>
 
 ##### Update Index Permissions:
 <pre>
-http://your.elasticsearch.hostname:9200/_httpuserauth?mode=updateindex&username=admin&index=index-*
+http://your.elasticsearch.hostname:9200/_httpuserauth?mode=updateindex&username=admin&index=index-*&read=false&write=false&delete=false
 </pre>
 
 ##### Delete User:
