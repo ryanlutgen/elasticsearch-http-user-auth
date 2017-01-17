@@ -192,29 +192,29 @@ public class UserDataBridge {
 	 * @return
 	 */
 	public boolean removeAuth (String userName, String password, String indexName) {
-//		if (userName == null || userName.equals("") || indexName == null || indexName.equals("")) {
-//			return false;
-//		}
-//		userName = userName.toLowerCase();
-//		indexName = indexName.toLowerCase();
-//		if (userName.equals("root")) {
-//			return false;
-//		}
-//
-//		UserData user = getUser(userName);
-//		if (user == null)
-//			return false;
-//		if (user.isValidPassword(password)) {
-//			Set<String> indices = user.getIndexFilters();
-//			if (indexName.charAt(0) != '/') {
-//				indexName = "/" + indexName;
-//			}
-//			if (indices.contains(indexName)) {
-//				indices.remove(indexName);
-//				putUser(user);
-//				return true;
-//			}
-//		}
+		if (userName == null || userName.equals("") || indexName == null || indexName.equals("")) {
+			return false;
+		}
+		userName = userName.toLowerCase();
+		indexName = indexName.toLowerCase();
+		if (userName.equals("root")) {
+			return false;
+		}
+
+		UserData user = getUser(userName);
+		if (user == null)
+			return false;
+		if (user.isValidPassword(password)) {
+            HashMap<String, HashMap<String, Boolean>> indexFilters = user.getIndexFilters();
+            if (indexName.charAt(0) != '/') {
+				indexName = "/" + indexName;
+			}
+			if (indexFilters.keySet().contains(indexName)) {
+                indexFilters.remove(indexName);
+				putUser(user);
+				return true;
+			}
+		}
 		return false;
 	}
 	
