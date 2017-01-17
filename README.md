@@ -130,10 +130,14 @@ http://your.elasticsearch.hostname:9200/_httpuserauth?mode=adduser&username=admi
 http://your.elasticsearch.hostname:9200/_httpuserauth?mode=addindex&username=admin&index=index*&read=true&write=true&delete=true
 </pre>
 
+Each right will default to false if no parameter passed.
+
 ##### Update Index Permissions:
 <pre>
 http://your.elasticsearch.hostname:9200/_httpuserauth?mode=updateindex&username=admin&index=index-*&read=false&write=false&delete=false
 </pre>
+
+Each right will default to false if no parameter passed.
 
 ##### Delete User:
 <pre>
