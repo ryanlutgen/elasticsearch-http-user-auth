@@ -92,7 +92,7 @@ public class UserDataBridge {
 	 * @param indexName
 	 * @return
 	 */
-	public boolean addAuthIndex (String userName, String indexName, boolean readRight, boolean writeRight, boolean addRight, boolean deleteRight) {
+	public boolean addAuthIndex (String userName, String indexName, boolean readRight, boolean writeRight, boolean deleteRight) {
 		if (userName == null || userName.equals("") || indexName == null || indexName.equals("")) {
 			return false;
 		}
@@ -126,7 +126,6 @@ public class UserDataBridge {
                 {{
                     put("read", readRight);
                     put("write", writeRight);
-                    put("add", addRight);
                     put("delete", deleteRight);
                 }}
             );
@@ -142,7 +141,7 @@ public class UserDataBridge {
 	 * @param indexName
 	 * @return
 	 */
-	public boolean updateAuthIndex (String userName, String indexName, boolean readRight, boolean writeRight, boolean addRight, boolean deleteRight) {
+	public boolean updateAuthIndex (String userName, String indexName, boolean readRight, boolean writeRight, boolean deleteRight) {
 		if (userName == null || userName.equals("") || indexName == null || indexName.equals("")) {
 			return false;
 		}
@@ -159,6 +158,7 @@ public class UserDataBridge {
 
         HashMap<String, HashMap<String, Boolean>> indexFilters = new HashMap<String, HashMap<String, Boolean>>();
 		String[] indexNames = indexName.split(",");
+
 		for (String index : indexNames) {
 			index = index.trim();
 
@@ -176,7 +176,6 @@ public class UserDataBridge {
                     {{
                         put("read", readRight);
                         put("write", writeRight);
-                        put("add", addRight);
                         put("delete", deleteRight);
                     }}
             );

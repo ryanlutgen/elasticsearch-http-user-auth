@@ -65,11 +65,10 @@ public class AuthRestHandler extends BaseRestHandler {
             String indexName = request.param("index");
             boolean readRight = request.paramAsBoolean("read", false);
             boolean writeRight = request.paramAsBoolean("write", false);
-            boolean addRight = request.paramAsBoolean("add", false);
             boolean deleteRight = request.paramAsBoolean("delete", false);
 
 			try {
-				boolean res = userDataBridge.addAuthIndex(userName, indexName, readRight, writeRight, addRight, deleteRight);
+				boolean res = userDataBridge.addAuthIndex(userName, indexName, readRight, writeRight, deleteRight);
 				if (res) {
 					return channel -> channel.sendResponse(new BytesRestResponse(OK, "added auth index: " + userName));
 				} else {
@@ -86,11 +85,10 @@ public class AuthRestHandler extends BaseRestHandler {
 			String indexName = request.param("index");
             boolean readRight = request.paramAsBoolean("read", false);
             boolean writeRight = request.paramAsBoolean("write", false);
-            boolean addRight = request.paramAsBoolean("add", false);
             boolean deleteRight = request.paramAsBoolean("delete", false);
 
 			try {
-				boolean res = userDataBridge.updateAuthIndex(userName, indexName, readRight, writeRight, addRight, deleteRight);
+				boolean res = userDataBridge.updateAuthIndex(userName, indexName, readRight, writeRight, deleteRight);
 				if (res) {
 					return channel -> channel.sendResponse(new BytesRestResponse(OK, "updated auth index: " + userName));
 				} else {
