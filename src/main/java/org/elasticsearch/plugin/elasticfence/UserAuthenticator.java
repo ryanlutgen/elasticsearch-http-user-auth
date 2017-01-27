@@ -128,7 +128,6 @@ public class UserAuthenticator {
 	 */
 	private boolean isKibanaRequest(String requestPath) {
 		String index = normalizeUrlPath(requestPath);
-        EFLogger.warn("isKibanaRequest requestPath -> " + requestPath);
 		if ("/".equals(requestPath) || "/_nodes".equals(requestPath) || "_mget".equals(index) ) {
 			return true;
 		}
