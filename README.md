@@ -89,6 +89,25 @@ Add permissions to your <b>kibana</b> users using regex filters:
 /index.*,/_.*,/.kibana,/
 </pre>
 
+##### Multiple Kibana Instances
+To run multiple Kibana instances in the cluster, add/modify the following lines in the associated kibana.yml files:
+<pre>
+server.port
+kibana.index
+</pre>
+
+- These values should be unique for each Kibana instance
+- kibana.index should start with a period '`.`', ex: `.kibana-instance2`
+
+Set the `elasticsearch.username` and `elasticsearch.password` to different values for each Kibana instance.
+
+Then add the following line to the `elasticsearch.yml` file:
+<pre>
+elasticfence.kibana.indices: [".kibana", ".kibana-instance2"]
+</pre>
+- This defines what indices represent Kibana indices.  This should be an array of all of the `kibana.index` values.
+    - This setting can also be an array of length 1 if the a single instance of Kibana does not use the default `.kibana` index.
+- This setting is not needed if one instance of Kibana is used and it is using the default `kibana.index` value.
 
 ## User Management Console
 

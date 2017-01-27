@@ -44,6 +44,9 @@ public class ElasticfencePlugin extends Plugin {
         	String[] whitelist = getSettingArray("whitelist", new String[]{"127.0.0.1"});
         	String[] blacklist = getSettingArray("blacklist", new String[]{});
 
+            String[] customKibanaIndices = getSettingArray("kibana.indices", new String[]{".kibana"});
+            UserAuthenticator.setKibanaIndices(customKibanaIndices);
+
         	if (whitelist != null ) {
         		IPAuthenticator.setWhitelist(whitelist);
 	            	EFLogger.warn("elasticfence plugin IP whitelist enabled " + Arrays.toString(whitelist));

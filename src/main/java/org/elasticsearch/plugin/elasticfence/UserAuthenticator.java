@@ -18,6 +18,7 @@ import org.elasticsearch.plugin.elasticfence.parser.RequestParser;
  */
 public class UserAuthenticator {
 	private static String rootPassword = "";
+    private static String[] kibanaIndices;
 
 	// a map of all users' username => UserData 
 	private static Map<String, UserData> users;
@@ -127,9 +128,19 @@ public class UserAuthenticator {
 	 */
 	private boolean isKibanaRequest(String requestPath) {
 		String index = normalizeUrlPath(requestPath);
-		if ("/".equals(requestPath) || "/_nodes".equals(requestPath) || "/.kibana".equals(index) || "/_cluster/health/.kibana".equals(requestPath) || "_mget".equals(index) ) {
+        EFLogger.warn("isKibanaRequest requestPath -> " + requestPath);
+		if ("/".equals(requestPath) || "/_nodes".equals(requestPath) || "_mget".equals(index) ) {
 			return true;
 		}
+        else {
+            for (String kibanaIndex : UserAuthenticator.kibanaIndices) {
+                String formattedKibanaIndex = "/" + kibanaIndex;
+                String clusterHealthKibana = "/_cluster/health" + formattedKibanaIndex;
+                if (formattedKibanaIndex.equals(index) || clusterHealthKibana.equals(requestPath)) {
+                    return true;
+                }
+            }
+        }
 		
 		return false;
 	}
@@ -140,12 +151,18 @@ public class UserAuthenticator {
 	 * @return
 	 */
 	private boolean isAccessibleUserToKibana(Set<String> filters) {
-		if (filters.contains("/.kibana")) {
-			return true;
-		}
+        for (String kibanaIndex : UserAuthenticator.kibanaIndices) {
+            if (filters.contains("/" + kibanaIndex)) {
+                return true;
+            }
+        }
 		
 		return false;
 	}
+
+    static void setKibanaIndices(String[] kibanaIndices) {
+        UserAuthenticator.kibanaIndices = kibanaIndices;
+    }
 	
 	/**
 	 * check if an user has filter matching regex rules
