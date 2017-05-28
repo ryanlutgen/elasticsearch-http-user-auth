@@ -72,7 +72,7 @@ public class AuthRestFilter extends RestFilter {
 			RequestParser parser = new RequestParser(request, settings);
 			if (userAuth.isValidUser()) {
 				boolean isAccessible;
-				isAccessible = userAuth.isAccessibleIndices(parser);
+				isAccessible = userAuth.isAccessibleIndices(parser, request.method());
 				if (isAccessible) {
 					try {
 						filterChain.continueProcessing(request, channel, client);
