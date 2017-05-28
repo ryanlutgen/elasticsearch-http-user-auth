@@ -62,10 +62,13 @@ public class AuthRestHandler extends BaseRestHandler {
 		}
 		if ("addindex".equals(mode)) {
 			String userName  = request.param("username");
-			String indexName = request.param("index");
+            String indexName = request.param("index");
+            boolean readRight = request.paramAsBoolean("read", false);
+            boolean writeRight = request.paramAsBoolean("write", false);
+            boolean deleteRight = request.paramAsBoolean("delete", false);
 
 			try {
-				boolean res = userDataBridge.addAuthIndex(userName, indexName);
+				boolean res = userDataBridge.addAuthIndex(userName, indexName, readRight, writeRight, deleteRight);
 				if (res) {
 					return channel -> channel.sendResponse(new BytesRestResponse(OK, "added auth index: " + userName));
 				} else {
@@ -80,17 +83,20 @@ public class AuthRestHandler extends BaseRestHandler {
 		if ("updateindex".equals(mode)) {
 			String userName  = request.param("username");
 			String indexName = request.param("index");
+            boolean readRight = request.paramAsBoolean("read", false);
+            boolean writeRight = request.paramAsBoolean("write", false);
+            boolean deleteRight = request.paramAsBoolean("delete", false);
 
 			try {
-				boolean res = userDataBridge.updateAuthIndex(userName, indexName);
+				boolean res = userDataBridge.updateAuthIndex(userName, indexName, readRight, writeRight, deleteRight);
 				if (res) {
-					return channel -> channel.sendResponse(new BytesRestResponse(OK, "added auth index: " + userName));
+					return channel -> channel.sendResponse(new BytesRestResponse(OK, "updated auth index: " + userName));
 				} else {
-					return channel -> channel.sendResponse(new BytesRestResponse(OK, "failed to add auth index: " + userName));
+					return channel -> channel.sendResponse(new BytesRestResponse(OK, "failed to update auth index: " + userName));
 				}
 			} catch (Exception ex) {
 				EFLogger.error("failed to add auth index: ", ex);
-				return channel -> channel.sendResponse(new BytesRestResponse(OK, "failed to add auth index : " + userName));
+				return channel -> channel.sendResponse(new BytesRestResponse(OK, "failed to update auth index : " + userName));
 			}
 		}
 
